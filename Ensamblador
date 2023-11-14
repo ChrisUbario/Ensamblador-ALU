@@ -1,0 +1,169 @@
+const int segA = 5;
+const int segB = 6;
+const int segC = 7;
+const int segD = 8;
+const int segE = 9;
+const int segF = 10;
+const int segG = 11;
+
+const int pinSigno = 12;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(segA, OUTPUT);
+  pinMode(segB, OUTPUT);
+  pinMode(segC, OUTPUT);
+  pinMode(segD, OUTPUT);
+  pinMode(segE, OUTPUT);
+  pinMode(segF, OUTPUT);
+  pinMode(segG, OUTPUT);
+
+  pinMode(pinSigno, OUTPUT);
+}
+
+void loop() {
+  if(Serial.available() > 0){
+    String comando = Serial.readString(); //Lee comando en la terminal
+    Serial.println(comando);
+
+    if(comando.startsWith("suma")){
+      comando.remove(0, 5); //Eliminar suma de la cadena
+      String C = comando.substring(0, 1);
+      String A = comando.substring(1, 2);
+      String D = comando.substring(3, 4);
+      String B = comando.substring(4, 5);
+
+      int CA = (C.toInt() << 1) | A.toInt();
+      int DB = (D.toInt() << 1) | B.toInt();
+
+      int resultado = CA + DB;
+
+      displayBCD(resultado, segA, segB, segC, segD, segE, segF, segG);
+
+      digitalWrite(pinSigno, LOW);
+      }
+    
+    else if(comando.startsWith("resta")){
+      comando.remove(0, 6);
+      String C = comando.substring(0, 1);
+      String A = comando.substring(1, 2);
+      String D = comando.substring(3, 4);
+      String B = comando.substring(4, 5);
+
+      int CA = (C.toInt() << 1) | A.toInt();
+      int DB = (D.toInt() << 1) | B.toInt();
+
+      int resultado = CA - DB;
+
+      displayBCD(abs(resultado), segA, segB, segC, segD, segE, segF, segG);
+
+      digitalWrite(pinSigno, resultado < 0);
+      }
+
+    else if(comando.startsWith("multiplicacion")){
+      comando.remove(0, 15);
+      String C = comando.substring(0, 1);
+      String A = comando.substring(1, 2);
+      String D = comando.substring(3, 4);
+      String B = comando.substring(4, 5);
+
+      int CA = (C.toInt() << 1) | A.toInt();
+      int DB = (D.toInt() << 1) | B.toInt();
+
+      int resultado = CA * DB;
+      displayBCD(resultado, segA, segB, segC, segD, segE, segF, segG);
+
+      digitalWrite(pinSigno, LOW);
+}
+
+    else if(comando.startsWith("division")){
+      comando.remove(0, 9);
+      String C = comando.substring(0, 1);
+      String A = comando.substring(1, 2);
+      String D = comando.substring(3, 4);
+      String B = comando.substring(4, 5);
+
+      int CA = (C.toInt() << 1) | A.toInt();
+      int DB = (D.toInt() << 1) | B.toInt();
+
+      if(CA == 0){
+        digitalWrite(pinSigno, HIGH);
+      }  else{
+          int resultado = DB/CA;
+          displayBCD(resultado, segA, segB, segC, segD, segE, segF, segG);
+
+          digitalWrite(pinSigno, LOW);
+        }
+      }
+
+      else if(comando.startsWith("and")){
+        comando.remove(0, 4);
+        String C = comando.substring(0, 1);
+        String A = comando.substring(1, 2);
+        String D = comando.substring(3, 4);
+        String B = comando.substring(4, 5);
+
+        int CA = (C.toInt() << 1) | A.toInt();
+        int DB = (D.toInt() << 1) | B.toInt();
+
+        int resultado = CA & DB;
+
+        displayBCD(resultado, segA, segB, segC, segD, segE, segF, segG);
+        digitalWrite(pinSigno, LOW);
+      }
+
+      else if(comando.startsWith("or")){
+        comando.remove(0, 3);
+        String C = comando.substring(0, 1);
+        String A = comando.substring(1, 2);
+        String D = comando.substring(3, 4);
+        String B = comando.substring(4, 5);
+
+        int CA = (C.toInt() << 1) | A.toInt();
+        int DB = (D.toInt() << 1) | B.toInt();
+
+        int resultado = CA | DB;
+
+        displayBCD(resultado, segA, segB, segC, segD, segE, segF, segG);
+        digitalWrite(pinSigno, LOW);
+      }
+
+      else if(comando.startsWith("xor")){
+        comando.remove(0, 4);
+        String C = comando.substring(0, 1);
+        String A = comando.substring(1, 2);
+        String D = comando.substring(3, 4);
+        String B = comando.substring(4, 5);
+
+        int CA = (C.toInt() << 1) | A.toInt();
+        int DB = (D.toInt() << 1) | B.toInt();
+
+        int resultado = CA ^ DB;
+
+        displayBCD(resultado, segA, segB, segC, segD, segE, segF, segG);
+        digitalWrite(pinSigno, LOW);
+      }
+    }
+  }
+
+
+void displayBCD(int valor, int segA, int segB, int segC, int segD, int segE, int segF, int segG){
+  int segmentos[10][7] = {
+    {1, 1, 1, 1, 1, 1, 0}, //0
+    {0, 1, 1, 0, 0, 0, 0}, // 1
+    {1, 1, 0, 1, 1, 0, 1}, // 2
+    {1, 1, 1, 1, 0, 0, 1}, // 3
+    {0, 1, 1, 0, 0, 1, 1}, // 4
+    {1, 0, 1, 1, 0, 1, 1}, // 5
+    {1, 0, 1, 1, 1, 1, 1}, // 6
+    {1, 1, 1, 0, 0, 0, 0}, // 7
+    {1, 1, 1, 1, 1, 1, 1}, // 8
+    {1, 1, 1, 1, 0, 1, 1}  // 9
+  };
+
+  if(valor >= 0 && valor <= 9){
+    for(int i = 0; i < 7; i++){
+      digitalWrite(segA + i, segmentos[valor][i]);
+    }
+  }
+}
